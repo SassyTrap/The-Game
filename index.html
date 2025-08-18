@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐀 Word Combat RPG 🐀</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #7f8c8d 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Main Container */
+        .container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Top Section - Game Title */
+        .top-section {
+            text-align: center;
+            padding: 10px 5px;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+        
+        .top-section h1 {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .top-section p {
+            font-size: 0.9em;
+            color: #b8c5d6;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        /* Battle Scene */
+        .battle-scene {
+            background: linear-gradient(135deg, #2d5a27 0%, #3a7d32 50%, #2d5a27 100%);
+            border-radius: 20px;
+            padding: 15px 10px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            min-height: 300px;
+        }
+        
+        .battle-scene::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 40%),
+                radial-gradient(circle at 70% 30%, rgba(255,255,255,0.1) 0%, transparent 40%);
+            pointer-events: none;
+        }
+        
+        .battle-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin: 0;
+            z-index: 1;
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            padding: 6px 16px;
+            border-radius: 15px;
+            display: inline-block;
+            margin: 0 auto;
+        }
+        
+        .enemies-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            gap: 15px;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .enemy {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .enemy-image {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            background: rgba(255,255,255,0.05);
+            border: 3px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .enemy-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .enemy-name {
+            font-size: 1em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.6);
+            padding: 4px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .enemy-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+        
+        .stat-bar {
+            width: 200px;
+            height: 16px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ee5a52);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 8px rgba(255, 107, 107, 0.6);
+        }
+        
+        .stat-text {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.6);
+            padding: 3px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        /* Bottom Section - Word Combat System */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            flex-shrink: 0;
+            padding-bottom: 10px;
+        }
+        
+        /* Word Display */
+        .word-display {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-radius: 15px;
+            padding: 15px 8px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .word-label {
+            font-size: 0.85em;
+            color: #ffffff;
+            margin-bottom: 6px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            opacity: 0.9;
+        }
+        
+        .current-word {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 1px;
+            background: rgba(255,255,255,0.15);
+            padding: 8px;
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            display: inline-block;
+        }
+        
+        /* Input System */
+        .input-system {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            border-radius: 15px;
+            padding: 15px 8px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .input-label {
+            font-size: 0.85em;
+            color: #ffffff;
+            margin-bottom: 6px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            opacity: 0.9;
+        }
+        
+        .word-input {
+            width: 120px;
+            padding: 8px 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 10px;
+            text-align: center;
+            background: #ffffff;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .word-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.6);
+            transform: scale(1.02);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 0.9em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Available Words Display */
+        .available-words {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            border-radius: 15px;
+            padding: 15px 8px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .words-label {
+            font-size: 0.85em;
+            color: #ffffff;
+            margin-bottom: 6px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            opacity: 0.9;
+        }
+        
+        .word-list {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .word-item {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #ffffff;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        
+        .word-item:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        
+        /* Mobile-First Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+                gap: 12px;
+            }
+            
+            .top-section h1 {
+                font-size: 1.6em;
+            }
+            
+            .top-section p {
+                font-size: 0.8em;
+            }
+            
+            .battle-scene {
+                padding: 12px 8px;
+                border-radius: 15px;
+                min-height: 250px;
+            }
+            
+            .battle-title {
+                font-size: 1.1em;
+                padding: 5px 14px;
+            }
+            
+            .enemy-image {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .stat-bar {
+                width: 220px;
+                height: 18px;
+            }
+            
+            .enemy-name {
+                font-size: 0.9em;
+                padding: 3px 10px;
+            }
+            
+            .stat-text {
+                font-size: 0.8em;
+                padding: 2px 8px;
+            }
+            
+            .bottom-section {
+                gap: 8px;
+            }
+            
+            .word-display,
+            .input-system,
+            .available-words {
+                padding: 12px 6px;
+                min-height: 100px;
+            }
+            
+            .current-word {
+                font-size: 1.2em;
+                padding: 6px;
+            }
+            
+            .word-input {
+                width: 100px;
+                font-size: 0.9em;
+                padding: 6px 8px;
+            }
+            
+            .submit-btn {
+                padding: 6px 16px;
+                font-size: 0.8em;
+            }
+            
+            .word-item {
+                padding: 3px 6px;
+                font-size: 0.75em;
+            }
+        }
+        
+        @media (min-width: 481px) and (max-width: 768px) {
+            .enemy-image {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .stat-bar {
+                width: 250px;
+            }
+            
+            .bottom-section {
+                gap: 10px;
+            }
+            
+            .word-display,
+            .input-system,
+            .available-words {
+                padding: 12px 8px;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .enemy-image {
+                width: 320px;
+                height: 320px;
+            }
+            
+            .stat-bar {
+                width: 320px;
+            }
+            
+            .bottom-section {
+                gap: 15px;
+            }
+            
+            .word-display,
+            .input-system,
+            .available-words {
+                padding: 20px 15px;
+                min-height: 140px;
+            }
+            
+            .current-word {
+                font-size: 1.8em;
+                padding: 12px;
+            }
+            
+            .word-input {
+                width: 160px;
+                font-size: 1.1em;
+                padding: 10px 12px;
+            }
+            
+            .submit-btn {
+                padding: 10px 25px;
+                font-size: 1em;
+            }
+            
+            .word-item {
+                padding: 6px 12px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Section - Game Title & Navigation -->
+        <div class="top-section">
+            <h1>🐀 Word Combat RPG 🐀</h1>
+            <p>Type the right word to defeat the rat!</p>
+        </div>
+        
+        <!-- Top Section - Battle Scene & Enemies -->
+        <div class="battle-scene">
+            <div class="battle-title">🐀 RAT BATTLE ARENA 🐀</div>
+            
+            <div class="enemies-container" id="enemiesContainer">
+                <!-- Enemies will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Bottom Section - Word Combat System -->
+        <div class="bottom-section">
+            <!-- Word Display -->
+            <div class="word-display">
+                <div class="word-label">Current Word:</div>
+                <div class="current-word" id="currentWord">
+                    <!-- Word will be displayed here -->
+                </div>
+            </div>
+            
+            <!-- Input System -->
+            <div class="input-system">
+                <div class="input-label">Type the current word:</div>
+                <input type="text" class="word-input" id="wordInput" placeholder="Type here...">
+                <button class="submit-btn" id="submitBtn">Submit</button>
+            </div>
+            
+            <!-- Available Words Display -->
+            <div class="available-words">
+                <div class="words-label">Available Words:</div>
+                <div class="word-list" id="availableWords">
+                    <!-- Words will be loaded here -->
+                </div>
+            </div>
+        </div>
+        
+
+    </div>
+
+    <script>
+        // Game configuration
+        const gameWords = ['Gun', 'Sword', 'Shield'];
+        const combatRules = {
+            'Gun': 'Shield',    // Gun beats Shield
+            'Shield': 'Sword',  // Shield beats Sword
+            'Sword': 'Gun'      // Sword beats Gun
+        };
+        
+        // Game state
+        let currentWord = '';
+        let ratHealth = 100;
+        let isGameActive = true;
+        let currentAnimation = 'idle';
+        let animationTimeout = null;
+        
+        // Rat sprite paths
+        const ratSprites = {
+            idle: "./Rat/OutlinedRat/rat-idle-outline.png",
+            run: "./Rat/OutlinedRat/rat-run-outline.png",
+            attack: "./Rat/OutlinedRat/rat-attack-outline.png",
+            hurt: "./Rat/OutlinedRat/rat-hurt-outline.png",
+            death: "./Rat/OutlinedRat/rat-death-outline.png"
+        };
+        
+        // Initialize the game
+        function init() {
+            console.log("🐀 Initializing Word Combat RPG...");
+            loadRatSprite('idle');
+            loadAvailableWords();
+            generateNewWord();
+            setupEventListeners();
+            console.log("✅ Word Combat RPG initialized!");
+        }
+        
+        // Load available words display
+        function loadAvailableWords() {
+            const wordList = document.getElementById('availableWords');
+            wordList.innerHTML = '';
+            
+            gameWords.forEach(word => {
+                const wordDiv = document.createElement('div');
+                wordDiv.className = 'word-item';
+                wordDiv.textContent = word;
+                wordList.appendChild(wordDiv);
+            });
+        }
+        
+        // Generate a new random word
+        function generateNewWord() {
+            if (!isGameActive) return;
+            
+            currentWord = gameWords[Math.floor(Math.random() * gameWords.length)];
+            document.getElementById('currentWord').textContent = currentWord;
+            console.log(`🎯 New word generated: ${currentWord}`);
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            const wordInput = document.getElementById('wordInput');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Input validation - only allow valid words
+            wordInput.addEventListener('input', function() {
+                const input = this.value.trim();
+                const isValid = gameWords.some(word => 
+                    word.toLowerCase() === input.toLowerCase()
+                );
+                
+                submitBtn.disabled = !isValid;
+                
+                // Switch to running animation when typing
+                if (input.length > 0 && currentAnimation === 'idle') {
+                    changeRatAnimation('run');
+                } else if (input.length === 0 && currentAnimation === 'run') {
+                    changeRatAnimation('idle');
+                }
+            });
+            
+            // Submit word
+            submitBtn.addEventListener('click', submitWord);
+            wordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !submitBtn.disabled) {
+                    submitWord();
+                }
+            });
+        }
+        
+        // Submit word for combat
+        function submitWord() {
+            const input = document.getElementById('wordInput').value.trim();
+            if (!input || !isGameActive) return;
+            
+            const playerWord = input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+            const result = processCombat(currentWord, playerWord);
+            
+            // Clear input
+            document.getElementById('wordInput').value = '';
+            document.getElementById('submitBtn').disabled = true;
+            
+            // Handle combat result
+            handleCombatResult(result);
+        }
+        
+        // Process combat logic
+        function processCombat(enemyWord, playerWord) {
+            if (enemyWord === playerWord) {
+                return 'tie';
+            } else if (combatRules[playerWord] === enemyWord) {
+                return 'win';
+            } else {
+                return 'lose';
+            }
+        }
+        
+        // Handle combat result
+        function handleCombatResult(result) {
+            console.log(`⚔️ Combat result: ${result}`);
+            
+            switch (result) {
+                case 'win':
+                    // Player wins - enemy takes damage
+                    ratHealth = Math.max(0, ratHealth - 25);
+                    changeRatAnimation('hurt');
+                    setTimeout(() => {
+                        if (ratHealth > 0) {
+                            changeRatAnimation('idle');
+                            generateNewWord();
+                        } else {
+                            // Enemy defeated
+                            changeRatAnimation('death');
+                            isGameActive = false;
+                            setTimeout(() => {
+                                alert('🎉 You defeated the rat! Click OK to restart.');
+                                restartGame();
+                            }, 2000);
+                        }
+                    }, 1000);
+                    break;
+                    
+                case 'lose':
+                    // Player loses - enemy attacks
+                    changeRatAnimation('attack');
+                    setTimeout(() => {
+                        changeRatAnimation('idle');
+                        generateNewWord();
+                    }, 1000);
+                    break;
+                    
+                case 'tie':
+                    // Tie - nothing happens
+                    changeRatAnimation('idle');
+                    generateNewWord();
+                    break;
+            }
+            
+            updateHealthDisplay();
+        }
+        
+        // Change rat animation
+        function changeRatAnimation(animation) {
+            if (currentAnimation === animation) return;
+            
+            console.log(`🔄 Changing rat animation: ${currentAnimation} → ${animation}`);
+            currentAnimation = animation;
+            
+            // Clear any existing timeout
+            if (animationTimeout) {
+                clearTimeout(animationTimeout);
+                animationTimeout = null;
+            }
+            
+            // Clean up any existing canvas animations
+            const existingCanvas = document.querySelector('.enemy-image');
+            if (existingCanvas && existingCanvas.cleanup) {
+                existingCanvas.cleanup();
+            }
+            
+            // Load the new sprite
+            loadRatSprite(animation);
+        }
+        
+        // Load rat sprite with animation
+        function loadRatSprite(animation) {
+            const enemiesContainer = document.getElementById('enemiesContainer');
+            enemiesContainer.innerHTML = '';
+            
+            const enemyDiv = document.createElement('div');
+            enemyDiv.className = 'enemy';
+            
+            const img = new Image();
+            img.alt = `Rat ${animation}`;
+            
+            img.onload = function() {
+                console.log(`✅ ${animation} rat sprite loaded successfully!`);
+                
+                // Create animated sprite based on animation type
+                let frameCount, frameDelay;
+                
+                switch (animation) {
+                    case 'idle':
+                        frameCount = 6;
+                        frameDelay = 150;
+                        break;
+                    case 'run':
+                        frameCount = 6;
+                        frameDelay = 100;
+                        break;
+                    case 'attack':
+                        frameCount = 6;
+                        frameDelay = 120;
+                        break;
+                    case 'hurt':
+                        frameCount = 1; // Static for hurt
+                        frameDelay = 200;
+                        break;
+                    case 'death':
+                        frameCount = 6;
+                        frameDelay = 180;
+                        break;
+                    default:
+                        frameCount = 6;
+                        frameDelay = 150;
+                }
+                
+                const animatedSprite = createAnimatedSprite(img, frameCount, frameDelay, 400, 400);
+                animatedSprite.className = 'enemy-image';
+                animatedSprite.style.borderRadius = '10px';
+                animatedSprite.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+                animatedSprite.style.background = 'rgba(255,255,255,0.1)';
+                animatedSprite.style.padding = '10px';
+                animatedSprite.style.cursor = 'pointer';
+                
+                enemyDiv.appendChild(animatedSprite);
+            };
+            
+            img.onerror = function() {
+                console.error(`❌ Failed to load ${animation} rat sprite`);
+                // Create fallback canvas with error message
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 400;
+                canvas.height = 400;
+                canvas.className = 'enemy-image';
+                canvas.style.borderRadius = '10px';
+                canvas.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+                canvas.style.background = 'rgba(255,255,255,0.1)';
+                canvas.style.padding = '10px';
+                
+                // Draw error message
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(0, 0, 400, 400);
+                ctx.fillStyle = 'white';
+                ctx.font = '32px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Failed to load', 200, 180);
+                ctx.fillText(`${animation} sprite`, 200, 220);
+                ctx.fillText('Check file path', 200, 260);
+                
+                enemyDiv.appendChild(canvas);
+            };
+            
+            img.src = ratSprites[animation];
+            
+            // Add rat name
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'enemy-name';
+            nameDiv.textContent = `Rat (${animation})`;
+            enemyDiv.appendChild(nameDiv);
+            
+            // Add HP bar
+            const hpContainer = document.createElement('div');
+            hpContainer.className = 'enemy-stats';
+            
+            const hpBar = document.createElement('div');
+            hpBar.className = 'stat-bar hp-bar';
+            const hpFill = document.createElement('div');
+            hpFill.className = 'stat-fill';
+            hpFill.style.width = (ratHealth / 100 * 100) + '%';
+            hpBar.appendChild(hpFill);
+            
+            const hpText = document.createElement('div');
+            hpText.className = 'stat-text';
+            hpText.textContent = `${ratHealth}/100`;
+            
+            hpContainer.appendChild(hpBar);
+            hpContainer.appendChild(hpText);
+            
+            enemyDiv.appendChild(hpContainer);
+            enemiesContainer.appendChild(enemyDiv);
+        }
+        
+        // Update health display
+        function updateHealthDisplay() {
+            const hpFill = document.querySelector('.stat-fill');
+            const hpText = document.querySelector('.stat-text');
+            
+            if (hpFill && hpText) {
+                hpFill.style.width = (ratHealth / 100 * 100) + '%';
+                hpText.textContent = `${ratHealth}/100`;
+            }
+        }
+        
+        // Restart game
+        function restartGame() {
+            ratHealth = 100;
+            isGameActive = true;
+            currentAnimation = 'idle';
+            changeRatAnimation('idle');
+            generateNewWord();
+            updateHealthDisplay();
+        }
+        
+        // Create animated sprite from sprite sheet
+        function createAnimatedSprite(img, frameCount, frameDelay, targetWidth, targetHeight) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            
+            // Disable image smoothing for crisp pixel art
+            ctx.imageSmoothingEnabled = false;
+            ctx.mozImageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+            ctx.msImageSmoothingEnabled = false;
+            
+            // Animation variables
+            let currentFrame = 0;
+            let animationId = null;
+            let lastFrameTime = 0;
+            
+            // Debug info
+            console.log(`🎯 Creating sprite: ${frameCount} frames, ${img.naturalWidth}x${img.naturalHeight}`);
+            console.log(`🎯 Target canvas: ${targetWidth}x${targetHeight}`);
+            
+            // Animation loop function using requestAnimationFrame for smoother animation
+            function animate(currentTime) {
+                // Calculate time since last frame
+                if (lastFrameTime === 0) {
+                    lastFrameTime = currentTime;
+                }
+                
+                const deltaTime = currentTime - lastFrameTime;
+                
+                // Only update frame if enough time has passed
+                if (deltaTime >= frameDelay) {
+                    // Clear canvas completely
+                    ctx.clearRect(0, 0, targetWidth, targetHeight);
+                    
+                    // Calculate frame dimensions
+                    const frameWidth = img.naturalWidth / frameCount;
+                    const frameHeight = img.naturalHeight;
+                    
+                    // Calculate which part of the sprite sheet to show
+                    const sourceX = currentFrame * frameWidth;
+                    const sourceY = 0;
+                    
+                    // SCALE UP: Make the sprite much bigger by scaling it to fill most of the canvas
+                    // Scale factor: Make sprite fill 80% of canvas width
+                    const scaleFactor = (targetWidth * 0.8) / frameWidth;
+                    const scaledWidth = frameWidth * scaleFactor;
+                    const scaledHeight = frameHeight * scaleFactor;
+                    
+                    // Center the scaled sprite
+                    const destX = (targetWidth - scaledWidth) / 2;
+                    const destY = (targetHeight - scaledHeight) / 2;
+                    
+                    // Debug current frame position (only for first frame)
+                    if (currentFrame === 0) {
+                        console.log(`🎯 Frame ${currentFrame}: source(${sourceX},${sourceY}) dest(${destX},${destY}) size(${scaledWidth}x${scaledHeight}) scale(${scaleFactor}x)`);
+                    }
+                    
+                    // Draw current frame from sprite sheet, SCALED UP and centered
+                    ctx.drawImage(
+                        img,                    // Source image
+                        sourceX, sourceY,       // Source position (which frame)
+                        frameWidth, frameHeight, // Source size (frame size)
+                        destX, destY,           // Destination position (centered)
+                        scaledWidth, scaledHeight // Destination size (SCALED UP!)
+                    );
+                    
+                    // Move to next frame
+                    currentFrame = (currentFrame + 1) % frameCount;
+                    lastFrameTime = currentTime;
+                }
+                
+                // Continue animation
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            // Start animation
+            animationId = requestAnimationFrame(animate);
+            
+            // Add cleanup method to canvas
+            canvas.cleanup = function() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+            };
+            
+            return canvas;
+        }
+        
+        // Start when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
+
