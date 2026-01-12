@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fight Fight On</title>
+  <link rel="stylesheet" href="src/style.css" />
+  <link rel="stylesheet" href="rpgui/rpgui.min.css" />
+  <script src="rpgui/rpgui.min.js"></script>
+  <style>
+    /* Custom Overrides for RPGUI Integration */
+    .rpgui-content {
+      color: white;
+      user-select: none;
+    }
+
+    h1,
+    h2,
+    h3 {
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    /* Ensure HUD bars still look right inside RPGUI container */
+    #hud {
+      padding: 10px;
+      pointer-events: none;
+      /* Let clicks pass through except elements */
+      background-color: #2e2117 !important;
+      /* Wood Background */
+    }
+
+    /* Color Grid */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .color-btn {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #fff;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* Character Cards (Replacing RPGUI Buttons for Grid) */
+    .character-card {
+      width: 220px;
+      height: 260px;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .character-card:hover {
+      transform: scale(1.05);
+      filter: brightness(1.2);
+    }
+
+    .character-card img {
+      pointer-events: none;
+    }
+
+    .character-card p {
+      pointer-events: none;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 1.2rem;
+      color: gold;
+      text-shadow: 1px 1px 0 #000;
+    }
+  </style>
+</head>
+
+<body class="rpgui-content" style="overflow: hidden;">
+
+  <div id="selection-screen" class="rpgui-container framed"
+    style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.8); z-index: 1000;">
+    <h1 style="font-size: 3rem; margin-bottom: 40px; color: #ffcc00;">Choose your Fighter</h1>
+    <div class="options" style="display: flex; gap: 20px;">
+
+      <div id="btn-fox" class="character-card rpgui-container framed-golden-2">
+        <img src="profile icons/3.png"
+          style="width: 120px; height: 120px; border-radius: 10px; display: block; margin: 20px auto 10px; border: 2px solid #555;">
+        <p>Evander the Fox</p>
+      </div>
+
+      <div id="btn-raccoon" class="character-card rpgui-container framed-golden-2">
+        <img src="profile icons/1.png"
+          style="width: 120px; height: 120px; border-radius: 10px; display: block; margin: 20px auto 10px; border: 2px solid #555;">
+        <p>Papa the Raccoon</p>
+      </div>
+
+      <div id="btn-chicken" class="character-card rpgui-container framed-golden-2">
+        <img src="profile icons/2.png"
+          style="width: 120px; height: 120px; border-radius: 10px; display: block; margin: 20px auto 10px; border: 2px solid #555;">
+        <p>Leo the Chicken</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" style="display:none;" class="rpgui-container framed">
+    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+      <div id="hud-face"
+        style="width: 32px; height: 32px; background: #444; margin-right: 8px; border: 2px solid #fff;"></div>
+      <div id="hud-name" style="color: white; font-size: 1rem;">PLAYER</div>
+    </div>
+
+    <div class="hud-bar-container">
+      <div class="hud-label">HP</div>
+      <div class="hud-bar">
+        <div id="health-bar" class="hud-bar-fill health" style="width: 100%;"></div>
+      </div>
+    </div>
+    <div class="hud-bar-container">
+      <div class="hud-label">AP</div>
+      <div class="hud-bar">
+        <div id="armor-bar" class="hud-bar-fill"
+          style="width: 0%; background: #00aaff; border-right: 2px solid #0055aa;"></div>
+      </div>
+    </div>
+    <div class="hud-bar-container">
+      <div class="hud-label">SP</div>
+      <div class="hud-bar">
+        <div id="stamina-bar" class="hud-bar-fill stamina" style="width: 100%;"></div>
+      </div>
+    </div>
+
+    <div id="hud-metrics" style="margin-top: 8px; font-size: 0.9rem; color: gold; text-shadow: 1px 1px 0 #000;">
+      <div style="margin-bottom: 4px;">🪨 Pebbles: <span id="val-stones">0</span></div>
+      <div style="margin-bottom: 4px;">⚫ Coal: <span id="val-coal">0</span></div>
+      <div>💎 Metals: <span id="val-metals">0</span></div>
+    </div>
+  </div>
+
+  <!-- Debug Button -->
+  <button id="debug-spawn" class="rpgui-button"
+    style="position: absolute; bottom: 20px; right: 20px; z-index: 20; width: auto; padding: 5px 10px;">RESET
+    SPAWN</button>
+
+  <!-- Info Icon: Centered Top -->
+  <div id="info-icon" class="rpgui-button golden"
+    style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; line-height: 40px; padding: 0; font-size: 2rem; text-align: center; border-radius: 0; z-index: 20;">
+    ?</div>
+
+  <!-- Info Modal -->
+  <div id="info-modal" class="rpgui-container framed"
+    style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; z-index: 30; background: #222;">
+    <h2 style="color: gold; text-align: center; border-bottom: 2px solid #555; padding-bottom: 10px;">Stats</h2>
+    <div style="text-align: left; padding: 10px;">
+      <p style="margin: 10px 0;"><strong style="color: #ffaa00;">Fox (Evander)</strong><br>- Bite: 35 DMG<br>- Ability:
+        Fast Sprint</p>
+      <p style="margin: 10px 0;"><strong style="color: #aaaaaa;">Raccoon (Papa)</strong><br>- Pellet: 25 DMG<br>-
+        Ability: Dodge Roll</p>
+      <p style="margin: 10px 0;"><strong style="color: #ffffff;">Chicken (Leo)</strong><br>- Egg Bomb: 20 DMG (AoE)<br>-
+        Ability: High Jump</p>
+    </div>
+    <button id="close-info" class="rpgui-button"
+      style="width: 100px; display: block; margin: 20px auto 0;">CLOSE</button>
+  </div>
+
+  <!-- Interaction Prompt -->
+  <div id="interact-prompt" class="rpgui-container framed-golden"
+    style="display: none; position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); padding: 10px 20px; z-index: 15; background: #000;">
+    <p style="margin: 0; font-size: 1.2rem;">PRESS 'E' TO CHANGE COLOR</p>
+  </div>
+
+  <!-- Color Menu (Customization) -->
+  <div id="color-menu" class="rpgui-container framed"
+    style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 350px; z-index: 30; text-align: center; background: #222;">
+    <h3 style="color: cyan;">Select Color</h3>
+    <hr style="border: 1px solid #444; margin-bottom: 15px;">
+
+    <div class="color-grid">
+      <div class="color-btn" data-color="original"
+        style="background: repeating-linear-gradient(45deg, #eee, #eee 5px, #aaa 5px, #aaa 10px);"></div>
+      <div class="color-btn" data-color="#FF0000" style="background: #FF0000;"></div>
+      <div class="color-btn" data-color="#0000FF" style="background: #0000FF;"></div>
+      <div class="color-btn" data-color="#00FF00" style="background: #00FF00;"></div>
+      <div class="color-btn" data-color="#FFFF00" style="background: #FFFF00;"></div>
+      <div class="color-btn" data-color="#800080" style="background: #800080;"></div>
+      <div class="color-btn" data-color="#FFC0CB" style="background: #FFC0CB;"></div>
+      <div class="color-btn" data-color="#00FFFF" style="background: #00FFFF;"></div>
+      <div class="color-btn" data-color="#FFFFFF" style="background: #FFFFFF;"></div>
+      <div class="color-btn" data-color="#111111" style="background: #111111;"></div>
+    </div>
+
+    <br>
+    <button id="close-color" class="rpgui-button" style="width: 100px;">CLOSE</button>
+  </div>
+
+  <!-- Minimap: Framed Wood Theme -->
+  <!-- Coordinates -->
+  <div id="coords"
+    style="position: absolute; top: 10px; right: 10px; color: yellow; font-family: monospace; font-size: 1rem; text-shadow: 1px 1px 0 #000; z-index: 15;">
+    X: 0 Z: 0
+  </div>
+  <div id="minimap" class="rpgui-container framed"
+    style="position: absolute; bottom: 20px; right: 20px; width: 220px; height: 220px; padding: 0; background-color: #2e2117; z-index: 10;">
+    <div id="minimap-dot"
+      style="position: absolute; width: 8px; height: 8px; background: red; border-radius: 50%; transform: translate(-50%, -50%); z-index: 5;">
+    </div>
+  </div>
+
+  <!-- Loot Feedback -->
+  <div id="loot-feedback" style="display: none; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); 
+       font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 0 #000; z-index: 100;">
+  </div>
+
+  <!-- Workbench Menu -->
+  <div id="workbench-menu" class="rpgui-container framed"
+    style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:400px; z-index:30; background:#222; text-align: center;">
+    <h2 style="color:gold; margin: 0 0 10px 0;">WORKBENCH</h2>
+    <hr style="border: 1px solid #555;">
+
+    <p style="font-size: 0.8rem; color: #ccc;">Resources: <span id="wb-pebbles">0</span> Pebbles | <span
+        id="wb-metals">0</span> Metals</p>
+
+    <button id="btn-crack" class="rpgui-button" style="width:100%; margin-top:5px;">🔨 Crack Geode (1 Pebble)</button>
+
+    <!-- Character Specific Options -->
+    <button id="btn-craft-fox" class="rpgui-button" style="width:100%; margin-top:5px; display:none; color: cyan;">🛡️
+      Iron Armor (2 Metals)</button>
+    <button id="btn-craft-raccoon" class="rpgui-button"
+      style="width:100%; margin-top:5px; display:none; color: cyan;">🔮 Bubble Shield (2 Metals)</button>
+    <button id="btn-craft-chicken" class="rpgui-button" style="width:100%; margin-top:5px; display:none; color: red;">🧪
+      Rage Potion (2 Metals)</button>
+
+    <br><br>
+    <button id="close-workbench" class="rpgui-button" style="width:50%;">CLOSE</button>
+  </div>
+
+
+  <!-- CHATBOX -->
+  <div id="chatbox" class="rpgui-container framed"
+    style="position: absolute; bottom: 20px; left: 20px; width: 300px; height: 250px; z-index: 50; display: none; background: rgba(0,0,0,0.6);">
+    <div id="chat-history"
+      style="height: 180px; overflow-y: auto; font-size: 0.8rem; margin-bottom: 5px; text-align: left;">
+      <div style="color: #aaa;"><i>Connecting to server...</i></div>
+    </div>
+    <input id="chat-input" type="text" placeholder="Type message..."
+      style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); color: white; border: 1px solid #555;">
+  </div>
+
+  <!-- MAILBOX / SUGGESTIONS -->
+  <div id="mailbox-menu" class="rpgui-container framed"
+    style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; height: 400px; z-index:40; background:#222; text-align: center;">
+    <h2 style="color:gold; margin: 0 0 10px 0;">SUGGESTIONS</h2>
+    <hr style="border: 1px solid #555;">
+
+    <div id="suggestion-list"
+      style="height: 200px; overflow-y: auto; text-align: left; background: rgba(0,0,0,0.3); padding: 5px; margin-bottom: 10px; border: 1px solid #444;">
+      <!-- Items go here -->
+    </div>
+
+    <input id="suggestion-input" type="text" placeholder="Type your suggestion here..."
+      style="width: 100%; margin-bottom: 10px;">
+    <button id="btn-submit-suggestion" class="rpgui-button" style="width:100%;">SEND</button>
+    <br><br>
+    <button id="close-mailbox" class="rpgui-button" style="width:50%;">CLOSE</button>
+  </div>
+
+  <!-- GAME OVER SCREEN -->
+  <div id="game-over-screen"
+    style="display: none; position: absolute; top:0; left:0; width:100vw; height:100vh; background: black; z-index: 2000; flex-direction: column; justify-content: center; align-items: center;">
+    <h1 style="color: red; font-size: 5rem; text-shadow: 4px 4px 0 #330000; margin-bottom: 20px;">GAME OVER</h1>
+    <p style="color: white; font-size: 1.5rem; margin-bottom: 40px;">You have fallen.</p>
+    <button id="btn-respawn" class="rpgui-button" style="width: 200px; font-size: 1.2rem;">RESPAWN</button>
+  </div>
+
+  <canvas id="renderCanvas"></canvas>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
